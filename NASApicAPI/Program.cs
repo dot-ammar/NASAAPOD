@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.IO;
 
 var nasaJSON = string.Empty;
 DateTime d;
@@ -11,7 +12,10 @@ string date;
 dynamic DynamicData = string.Empty;
 string userName = Environment.UserName;
 long FILEasize;
-Console.WriteLine("Welome to the NASA APOD download center.\nWould you like to download the photo for today or for another date?");
+bool todayASK;
+string ext = string.Empty;
+
+Console.WriteLine("Welome to the NASA Astronomy Photo Of The Day (APOD) download center.\nWould you like to download the photo for today or for another date?\n*Sometimes can be a video...");
 
 while (true)
 {
@@ -20,13 +24,14 @@ while (true)
     if (date == "Today" || date == "today")
     {
 
-        Console.WriteLine($"\nLoading astronomy photo of the date by NASA for today...");
+        Console.WriteLine($"\nLoading APOD for today...");
         nasaJSON = await "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY"
             .GetStringAsync();
         DynamicData = JsonConvert.DeserializeObject(nasaJSON);
         Console.WriteLine($"\nTitle: '{DynamicData.title}'.");
         Console.WriteLine($"Description: {DynamicData.explanation}");
         date = "today";
+        todayASK = true;
         break;
     }
 
@@ -46,19 +51,20 @@ while (true)
     {
         try
         {
-            Console.WriteLine($"\nLoading Astronomy Photo Of The Day by NASA for {date}...");
+            Console.WriteLine($"\nLoading APOD for {date}...");
             nasaJSON = await $"https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&date={date}"
                 .GetStringAsync();
         }
         catch (Flurl.Http.FlurlHttpException)
         {
-            Console.WriteLine($"Image for {date} does not exist.\nExiting...");
+            Console.WriteLine($"Media for {date} does not exist.\nExiting...");
             Console.ReadLine();
             return;
         }
         DynamicData = JsonConvert.DeserializeObject(nasaJSON);
         Console.WriteLine($"\nTitle: '{DynamicData.title}'.");
         Console.WriteLine($"Description: {DynamicData.explanation}");
+        todayASK = false;
         break;
     }
 
@@ -68,9 +74,61 @@ while (true)
     }
 }
 
-string ext = GetFileExtensionFromUrl(DynamicData.hdurl);
+if (DynamicData.media_type == "video")
+{
+    if (todayASK == true)
+    {
+        Console.WriteLine($"Today's media is a video.");
+    }
+    else
+    {
+        Console.WriteLine($"{DynamicData.date}'s media is a video.");
+    }
 
-if (File.Exists(@$"C:\Users\{userName}\Pictures\NASAAPODs\{DynamicData.title} {DynamicData.date}.{ext}"))
+    Console.WriteLine($"Would you like to open the video in the browser? (Y/N)");
+    {
+        string read1 = Console.ReadLine();
+        while (true)
+        {
+            if (read1 == "Y" || read1 == "y")
+            {
+                Console.WriteLine("Opening...");
+
+                Process myProcess = new Process();
+
+                try
+                {
+                    // true is the default, but it is important not to set it to false
+                    myProcess.StartInfo.UseShellExecute = true;
+                    myProcess.StartInfo.FileName = $"{youtubeEmbedtoNormal(DynamicData.url)}";
+                    myProcess.Start();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+                break;
+            }
+
+            if (read1 == "N" || read1 == "n")
+            {
+                Console.WriteLine("Okay, exiting...");
+                break;
+            }
+
+            else
+            {
+                Console.WriteLine("That is not a valid input please try again.");
+            }
+        }
+    }
+    Console.ReadLine();
+    return;
+}
+
+ext = GetFileExtensionFromUrl(DynamicData.hdurl);
+
+    if (File.Exists(@$"C:\Users\{userName}\Pictures\NASAAPODs\{DynamicData.title} {DynamicData.date}.{ext}"))
 {
     Console.WriteLine("\nThe selected NASA astronomy photo of the day already exists in your Pictures folder. Would you like to open the directory? (Y/N)");
   
@@ -95,7 +153,6 @@ if (File.Exists(@$"C:\Users\{userName}\Pictures\NASAAPODs\{DynamicData.title} {D
         else
         {
             Console.WriteLine("That is not a valid input please try again.");
-            Console.ReadLine();
         }
     }
     Console.ReadLine();
@@ -144,3 +201,11 @@ static string GetFileExtensionFromUrl(string url)
     return url.Contains('.') ? url.Substring(url.LastIndexOf('.')) : "";
 }
 
+static string youtubeEmbedtoNormal(string url)
+{
+    string input = url;
+    string pattern = "embed/";
+    string replace = "watch?v=";
+    string result = Regex.Replace(input, pattern, replace);
+    return result;
+}
