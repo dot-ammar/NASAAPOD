@@ -25,9 +25,9 @@ while (true)
     {
 
         Console.WriteLine($"\nLoading APOD for today...");
-        nasaJSON = await "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY"
+        nasaJSON = await "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY"  //retrieving the photo
             .GetStringAsync();
-        DynamicData = JsonConvert.DeserializeObject(nasaJSON);
+        DynamicData = JsonConvert.DeserializeObject(nasaJSON); //parsing the JSON
         Console.WriteLine($"\nTitle: '{DynamicData.title}'.");
         Console.WriteLine($"Description: {DynamicData.explanation}");
         date = "today";
@@ -37,8 +37,8 @@ while (true)
 
     else
     {
-
-        chValidity = DateTime.TryParseExact(
+        //checking for whether correct format of date was entered
+        chValidity = DateTime.TryParseExact( 
         $"{date}",
         "yyyy-mm-dd",
         CultureInfo.InvariantCulture,
@@ -52,16 +52,16 @@ while (true)
         try
         {
             Console.WriteLine($"\nLoading APOD for {date}...");
-            nasaJSON = await $"https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&date={date}"
+            nasaJSON = await $"https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&date={date}" //retrieving the photo
                 .GetStringAsync();
         }
-        catch (Flurl.Http.FlurlHttpException)
+        catch (Flurl.Http.FlurlHttpException) //means that api rejected that date
         {
             Console.WriteLine($"Media for {date} does not exist.\nExiting...");
             Console.ReadLine();
             return;
         }
-        DynamicData = JsonConvert.DeserializeObject(nasaJSON);
+        DynamicData = JsonConvert.DeserializeObject(nasaJSON); //get the parts of the JSON and save them as dynamic data
         Console.WriteLine($"\nTitle: '{DynamicData.title}'.");
         Console.WriteLine($"Description: {DynamicData.explanation}");
         todayASK = false;
@@ -98,7 +98,8 @@ if (DynamicData.media_type == "video")
 
                 try
                 {
-                    // true is the default, but it is important not to set it to false
+                    // true is the default, but it is important not to set it to false.
+                    // opens the link in default browser.
                     myProcess.StartInfo.UseShellExecute = true;
                     myProcess.StartInfo.FileName = $"{youtubeEmbedtoNormal(DynamicData.url)}";
                     myProcess.Start();
@@ -128,7 +129,7 @@ if (DynamicData.media_type == "video")
 
 ext = GetFileExtensionFromUrl(DynamicData.hdurl);
 
-    if (File.Exists(@$"C:\Users\{userName}\Pictures\NASAAPODs\{DynamicData.title} {DynamicData.date}.{ext}"))
+    if (File.Exists(@$"C:\Users\{userName}\Pictures\NASAAPODs\{DynamicData.title} {DynamicData.date}.{ext}")) //doesn't download a new one anyways but just so the user knows
 {
     Console.WriteLine("\nThe selected NASA astronomy photo of the day already exists in your Pictures folder. Would you like to open the directory? (Y/N)");
   
@@ -140,7 +141,7 @@ ext = GetFileExtensionFromUrl(DynamicData.hdurl);
         if (read1 == "Y" || read1 == "y")
         {
             Console.WriteLine("Opening folder...");
-            Process.Start("explorer.exe", @$"C:\Users\{userName}\Pictures\NASAAPODs");
+            Process.Start("explorer.exe", @$"C:\Users\{userName}\Pictures\NASAAPODs"); //opens the folder
             break;
         }
 
@@ -167,9 +168,9 @@ while (true)
     if (read1 == "Y" || read1 == "y")
     {
         Console.WriteLine("\nDownloading to user's pictures folder...");
-        var path = await @$"{DynamicData.hdurl}"
-            .DownloadFileAsync(@$"C:\Users\{userName}\Pictures\NASAAPODs", $"{DynamicData.title} {DynamicData.date}.{ext}");
-        FileInfo fi = new FileInfo(@$"C:\Users\{userName}\Pictures\NASAAPODs\{DynamicData.title} {DynamicData.date}.{ext}");
+        var path = await @$"{DynamicData.hdurl}"  
+            .DownloadFileAsync(@$"C:\Users\{userName}\Pictures\NASAAPODs", $"{DynamicData.title} {DynamicData.date}.{ext}"); //downloads file
+        FileInfo fi = new FileInfo(@$"C:\Users\{userName}\Pictures\NASAAPODs\{DynamicData.title} {DynamicData.date}.{ext}"); //gets it's info/properties.
         FILEasize = (fi.Length)/1000;
         Console.WriteLine("File Size in KiloBytes: {0}", FILEasize);
         Console.WriteLine("Download succesful!");
@@ -193,14 +194,14 @@ while (true)
 
 //functional methods
 
-static string GetFileExtensionFromUrl(string url)
+static string GetFileExtensionFromUrl(string url) //seperates the file extension of a html file.
 {
     url = url.Split('?')[0];
     url = url.Split('/').Last();
     return url.Contains('.') ? url.Substring(url.LastIndexOf('.')) : "";
 }
 
-static string youtubeEmbedtoNormal(string url)
+static string youtubeEmbedtoNormal(string url) //makes the embed version of a link to a normal link so the program can properly parse it. For example: https://www.youtube.com/embed/s6IpsM_HNcU > https://www.youtube.com/watch?v=s6IpsM_HNcU&ab_channel=APODVideos
 {
     string input = url;
     string pattern = "embed/";
