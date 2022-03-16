@@ -173,6 +173,8 @@ while (true)
         FILEasize = (fi.Length)/1000;
         Console.WriteLine("File Size in KiloBytes: {0}", FILEasize);
         Console.WriteLine("Download succesful!");
+        Console.WriteLine("Opening folder...");
+        Process.Start("explorer.exe", @$"C:\Users\{userName}\Pictures\NASAAPODs");
         break;
     }
 
@@ -186,9 +188,6 @@ while (true)
     {
         Console.WriteLine("That is not a valid input please try again.");
     }
-
-    Console.WriteLine("Opening folder...");
-    Process.Start("explorer.exe", @$"C:\Users\{userName}\Pictures\NASAAPODs");
     Console.ReadLine();
 }
 
