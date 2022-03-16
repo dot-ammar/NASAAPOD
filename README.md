@@ -17,3 +17,5 @@ Otherwise it will ask if you would like to install it.
 Then it will give a success message and tell you how big the file was (in kilobytes).
 
 It will open it in file explorer for you to see.
+
+If its a video then it will open the youtube link in the default webrowser.
